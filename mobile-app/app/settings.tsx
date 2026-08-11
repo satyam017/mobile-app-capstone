@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import Slider from '@react-native-community/slider';
 import { Href, router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -17,7 +18,12 @@ import { BottomNav } from '../components/BottomNav';
 import { usePreferences } from '../context/PreferencesContext';
 import { spacing, type ThemeColors } from '../constants/theme';
 import type { SessionUser } from '../types/auth';
-import type { AppPreferences } from '../types/preferences';
+import {
+  DAILY_GOAL_MAX,
+  DAILY_GOAL_MIN,
+  LANGUAGE_OPTIONS,
+  type AppPreferences,
+} from '../types/preferences';
 import {
   clearSession,
   getRegisteredUser,
@@ -31,8 +37,6 @@ import { showAlert } from '../utils/showAlert';
 
 const PROFILE_AVATAR =
   'https://images.unsplash.com/photo-1545389336-cf090694435e?auto=format&fit=crop&w=200&q=80';
-
-const LANGUAGES = ['English', 'Español', 'Français'] as const;
 
 type ToggleKey = keyof Pick<
   AppPreferences,
@@ -59,7 +63,7 @@ const PREFERENCE_TOGGLES: {
 ];
 
 export default function SettingsScreen() {
-  const { prefs, persistPrefs, updatePrefs, colors, darkMode } =
+  const { prefs, persistPrefs, updatePrefs, colors, darkMode, toggleTheme } =
     usePreferences();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -71,6 +75,12 @@ export default function SettingsScreen() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [languageOpen, setLanguageOpen] = useState(false);
+  const [goalDraft, setGoalDraft] = useState(prefs.dailyGoalMinutes);
+
+  useEffect(() => {
+    setGoalDraft(prefs.dailyGoalMinutes);
+  }, [prefs.dailyGoalMinutes]);
 
   useEffect(() => {
     void (async () => {
@@ -87,6 +97,13 @@ export default function SettingsScreen() {
   }, []);
 
   const onToggle = (key: ToggleKey, value: boolean) => {
+    if (key === 'darkMode') {
+      if (value !== darkMode) {
+        void toggleTheme();
+      }
+      return;
+    }
+
     if (key === 'notifications' && value && !prefs.meditationReminder) {
       void updatePrefs({ notifications: true, meditationReminder: true });
     } else {
@@ -98,12 +115,9 @@ export default function SettingsScreen() {
     }
   };
 
-  const cycleLanguage = () => {
-    const index = LANGUAGES.indexOf(
-      prefs.language as (typeof LANGUAGES)[number],
-    );
-    const next = LANGUAGES[(index + 1) % LANGUAGES.length];
-    void updatePrefs({ language: next });
+  const selectLanguage = (language: string) => {
+    setLanguageOpen(false);
+    void updatePrefs({ language });
   };
 
   const handleSave = () => {
@@ -259,7 +273,7 @@ export default function SettingsScreen() {
                 <Text style={styles.rowLabel}>{item.label}</Text>
               </View>
               <Switch
-                value={prefs[item.key]}
+                value={item.key === 'darkMode' ? darkMode : prefs[item.key]}
                 onValueChange={(value) => onToggle(item.key, value)}
                 trackColor={{ false: colors.divider, true: colors.primary }}
                 thumbColor={colors.white}
@@ -270,7 +284,8 @@ export default function SettingsScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Change language"
-            onPress={cycleLanguage}
+            accessibilityState={{ expanded: languageOpen }}
+            onPress={() => setLanguageOpen((open) => !open)}
             style={styles.row}
           >
             <View style={styles.rowLeft}>
@@ -279,9 +294,75 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.languageChip}>
               <Text style={styles.languageText}>{prefs.language}</Text>
-              <Ionicons name="chevron-down" size={14} color={colors.text} />
+              <Ionicons
+                name={languageOpen ? 'chevron-up' : 'chevron-down'}
+                size={14}
+                color={colors.text}
+              />
             </View>
           </Pressable>
+
+          {languageOpen
+            ? LANGUAGE_OPTIONS.map((language) => {
+                const selected = prefs.language === language;
+                return (
+                  <Pressable
+                    key={language}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`Select ${language}`}
+                    onPress={() => selectLanguage(language)}
+                    style={[styles.dropdownRow, styles.rowBorder]}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownLabel,
+                        selected && styles.dropdownLabelSelected,
+                      ]}
+                    >
+                      {language}
+                    </Text>
+                    {selected ? (
+                      <Ionicons
+                        name="checkmark"
+                        size={18}
+                        color={colors.primary}
+                      />
+                    ) : null}
+                  </Pressable>
+                );
+              })
+            : null}
+        </View>
+
+        <Text style={styles.sectionTitle}>Daily Goal</Text>
+        <View style={styles.sliderCard}>
+          <View style={styles.sliderHeader}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="timer-outline" size={20} color={colors.primary} />
+              <Text style={styles.rowLabel}>Meditation minutes</Text>
+            </View>
+            <Text style={styles.sliderValue}>{goalDraft} min</Text>
+          </View>
+          <Slider
+            style={styles.slider}
+            minimumValue={DAILY_GOAL_MIN}
+            maximumValue={DAILY_GOAL_MAX}
+            step={5}
+            value={goalDraft}
+            onValueChange={setGoalDraft}
+            onSlidingComplete={(value) => {
+              void updatePrefs({ dailyGoalMinutes: Math.round(value) });
+            }}
+            minimumTrackTintColor={colors.primary}
+            maximumTrackTintColor={colors.divider}
+            thumbTintColor={colors.primaryDark}
+            accessibilityLabel="Daily meditation goal in minutes"
+          />
+          <View style={styles.sliderHints}>
+            <Text style={styles.sliderHintText}>{DAILY_GOAL_MIN} min</Text>
+            <Text style={styles.sliderHintText}>{DAILY_GOAL_MAX} min</Text>
+          </View>
         </View>
 
         <Text style={styles.sectionTitle}>Account</Text>
@@ -379,7 +460,8 @@ export default function SettingsScreen() {
 
         <Text style={styles.hint}>
           {darkMode ? 'Dark mode is on.' : 'Light mode is on.'} Sound is{' '}
-          {prefs.sound ? 'on' : 'off'}.
+          {prefs.sound ? 'on' : 'off'}. Daily goal is {prefs.dailyGoalMinutes}{' '}
+          minutes.
         </Text>
       </ScrollView>
 
@@ -548,6 +630,53 @@ function createStyles(colors: ThemeColors) {
       fontSize: 13,
       fontWeight: '600',
       color: colors.text,
+    },
+    dropdownRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: spacing.md,
+      paddingVertical: 12,
+      backgroundColor: colors.input,
+    },
+    dropdownLabel: {
+      fontSize: 15,
+      color: colors.text,
+    },
+    dropdownLabelSelected: {
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    sliderCard: {
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.divider,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    sliderHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: spacing.sm,
+    },
+    sliderValue: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.primaryDark,
+    },
+    slider: {
+      width: '100%',
+      height: 40,
+    },
+    sliderHints: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+    },
+    sliderHintText: {
+      fontSize: 12,
+      color: colors.textMuted,
     },
     logoutLabel: {
       fontSize: 15,

@@ -13,7 +13,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getMeditationById } from '../../constants/meditations';
-import { colors, spacing } from '../../constants/theme';
+import { spacing, type ThemeColors } from '../../constants/theme';
+import { useThemeColors } from '../../context/ThemeContext';
 import {
   FavoritesStorageError,
   getFavoriteIds,
@@ -25,6 +26,8 @@ import { showAlert } from '../../utils/showAlert';
 type TabKey = 'about' | 'instructions';
 
 export default function MeditationDetailScreen() {
+  const colors = useThemeColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const meditation = useMemo(
     () => (typeof id === 'string' ? getMeditationById(id) : undefined),
@@ -105,7 +108,6 @@ export default function MeditationDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      {}
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
@@ -243,181 +245,183 @@ export default function MeditationDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
-  },
-  headerBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  content: {
-    paddingBottom: spacing.xl,
-  },
-  hero: {
-    width: '100%',
-    height: 220,
-    backgroundColor: colors.input,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    gap: spacing.sm,
-  },
-  pill: {
-    backgroundColor: '#EDE9F5',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  pillText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primaryDark,
-  },
-  duration: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    flex: 1,
-  },
-  durationText: {
-    color: colors.textMuted,
-    fontSize: 13,
-  },
-  heartBtn: {
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  tabs: {
-    flexDirection: 'row',
-    gap: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.divider,
-  },
-  tab: {
-    paddingBottom: spacing.sm,
-  },
-  tabText: {
-    fontSize: 15,
-    color: colors.textMuted,
-    fontWeight: '600',
-  },
-  tabActive: {
-    color: colors.primary,
-  },
-  tabUnderline: {
-    marginTop: spacing.sm,
-    height: 2,
-    backgroundColor: colors.primary,
-    borderRadius: 1,
-  },
-  body: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.textMuted,
-  },
-  steps: {
-    paddingBottom: spacing.md,
-  },
-  footer: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-    backgroundColor: colors.white,
-  },
-  secondaryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-  },
-  secondaryText: {
-    color: colors.primary,
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  primaryBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
-    minHeight: 48,
-  },
-  primaryText: {
-    color: colors.white,
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  missing: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.lg,
-  },
-  missingTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  missingBody: {
-    textAlign: 'center',
-    color: colors.textMuted,
-    marginBottom: spacing.md,
-    lineHeight: 20,
-  },
-  backChip: {
-    borderWidth: 1,
-    borderColor: colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  backChipText: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.sm,
+    },
+    headerBtn: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    headerTitle: {
+      flex: 1,
+      textAlign: 'center',
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    content: {
+      paddingBottom: spacing.xl,
+    },
+    hero: {
+      width: '100%',
+      height: 220,
+      backgroundColor: colors.input,
+    },
+    metaRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      gap: spacing.sm,
+    },
+    pill: {
+      backgroundColor: colors.input,
+      borderRadius: 999,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+    },
+    pillText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primaryDark,
+    },
+    duration: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      flex: 1,
+    },
+    durationText: {
+      color: colors.textMuted,
+      fontSize: 13,
+    },
+    heartBtn: {
+      minWidth: 44,
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    title: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      fontSize: 24,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    tabs: {
+      flexDirection: 'row',
+      gap: spacing.lg,
+      paddingHorizontal: spacing.lg,
+      marginTop: spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.divider,
+    },
+    tab: {
+      paddingBottom: spacing.sm,
+    },
+    tabText: {
+      fontSize: 15,
+      color: colors.textMuted,
+      fontWeight: '600',
+    },
+    tabActive: {
+      color: colors.primary,
+    },
+    tabUnderline: {
+      marginTop: spacing.sm,
+      height: 2,
+      backgroundColor: colors.primary,
+      borderRadius: 1,
+    },
+    body: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      fontSize: 15,
+      lineHeight: 22,
+      color: colors.textMuted,
+    },
+    steps: {
+      paddingBottom: spacing.md,
+    },
+    footer: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.divider,
+      backgroundColor: colors.card,
+    },
+    secondaryBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      borderWidth: 1.5,
+      borderColor: colors.primary,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+    },
+    secondaryText: {
+      color: colors.primary,
+      fontWeight: '700',
+      fontSize: 13,
+    },
+    primaryBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      backgroundColor: colors.primary,
+      borderRadius: 12,
+      paddingVertical: 12,
+      minHeight: 48,
+    },
+    primaryText: {
+      color: colors.white,
+      fontWeight: '700',
+      fontSize: 15,
+    },
+    missing: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: spacing.lg,
+    },
+    missingTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    missingBody: {
+      textAlign: 'center',
+      color: colors.textMuted,
+      marginBottom: spacing.md,
+      lineHeight: 20,
+    },
+    backChip: {
+      borderWidth: 1,
+      borderColor: colors.primary,
+      borderRadius: 8,
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+    },
+    backChipText: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+  });
+}
