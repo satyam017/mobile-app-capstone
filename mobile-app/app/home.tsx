@@ -1,24 +1,31 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { Href, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BottomNav } from '../components/BottomNav';
+import { DailyMeditation } from '../components/DailyMeditation';
+import { PopularMeditation } from '../components/PopularMeditation';
+import { ScreenHeader } from '../components/ScreenHeader';
+import { Welcome } from '../components/Welcome';
+import { DAILY_MEDITATIONS, type Meditation } from '../constants/meditations';
 import { colors, spacing } from '../constants/theme';
 import type { SessionUser } from '../types/auth';
 import { clearSession, getSession } from '../utils/authStorage';
+import { showAlert } from '../utils/showAlert';
 
 export default function HomeScreen() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Load the logged-in session; redirect to Login if missing.
   useEffect(() => {
     let active = true;
 
@@ -42,18 +49,17 @@ export default function HomeScreen() {
     };
   }, []);
 
-  const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Log Out',
-        style: 'destructive',
-        onPress: async () => {
-          await clearSession();
-          router.replace('/login');
-        },
-      },
-    ]);
+  const openMeditation = (meditation: Meditation) => {
+    router.push(`/meditation/${meditation.id}` as Href);
+  };
+
+  const handleSettings = () => {
+    showAlert('Log Out', 'Tap OK to end your session and return to Login.', () => {
+      void (async () => {
+        await clearSession();
+        router.replace('/login');
+      })();
+    });
   };
 
   if (loading || !user) {
@@ -65,29 +71,40 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <View style={styles.brandRow}>
-          <Ionicons name="leaf" size={22} color={colors.primary} />
-          <Text style={styles.brand}>Mindful</Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Log out"
-          onPress={handleLogout}
-          hitSlop={8}
-        >
-          <Ionicons name="log-out-outline" size={24} color={colors.primary} />
-        </Pressable>
-      </View>
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      {/* Top navigation bar */}
+      <ScreenHeader
+        onRightPress={handleSettings}
+        rightAccessibilityLabel="Open settings and log out"
+        rightIcon="settings-outline"
+      />
 
-      <View style={styles.content}>
-        <Text style={styles.greeting}>Hello, {user.username}!</Text>
-        <Text style={styles.subtitle}>Find your calm today.</Text>
-        <Text style={styles.welcome}>
-          Welcome back to Mindful. You are successfully logged in.
-        </Text>
-      </View>
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Personalized welcome */}
+        <Welcome username={user.username} />
+
+        {/* Primary action */}
+        <View style={styles.primaryActionWrap}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Start today's meditation"
+            onPress={() => openMeditation(DAILY_MEDITATIONS[0])}
+            style={styles.primaryAction}
+          >
+            <Text style={styles.primaryActionText}>Start Today&apos;s Session</Text>
+          </Pressable>
+        </View>
+
+        {/* Content sections */}
+        <PopularMeditation onPressMeditation={openMeditation} />
+        <DailyMeditation onPressMeditation={openMeditation} />
+      </ScrollView>
+
+      <BottomNav active="home" />
     </SafeAreaView>
   );
 }
@@ -97,47 +114,33 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  flex: {
+    flex: 1,
+  },
   loading: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  scrollContent: {
+    paddingBottom: spacing.xl,
+  },
+  primaryActionWrap: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    marginBottom: spacing.xl,
   },
-  brandRow: {
-    flexDirection: 'row',
+  primaryAction: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 15,
     alignItems: 'center',
-    gap: spacing.sm,
+    minHeight: 48,
+    justifyContent: 'center',
   },
-  brand: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
-  },
-  greeting: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  subtitle: {
-    marginTop: spacing.xs,
+  primaryActionText: {
+    color: colors.white,
     fontSize: 16,
-    color: colors.textMuted,
-  },
-  welcome: {
-    marginTop: spacing.lg,
-    fontSize: 15,
-    lineHeight: 22,
-    color: colors.text,
+    fontWeight: '700',
   },
 });
