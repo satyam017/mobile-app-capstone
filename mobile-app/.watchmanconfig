@@ -1,0 +1,4 @@
+{
+  "ignore_dirs": ["node_modules", ".git", ".expo", "dist", "build"],
+  "prefer_split_fsevents_watcher": true
+}
