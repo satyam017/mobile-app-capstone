@@ -1,17 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import {
-  DAILY_MEDITATIONS,
-  type Meditation,
-} from '../constants/meditations';
+import { DAILY_MEDITATIONS, type Meditation } from '../constants/meditations';
 import { colors, spacing } from '../constants/theme';
 
 type DailyMeditationProps = {
   onPressMeditation: (meditation: Meditation) => void;
 };
 
-/** Vertical list of daily meditation sessions. */
 export function DailyMeditation({ onPressMeditation }: DailyMeditationProps) {
   return (
     <View style={styles.section}>
@@ -29,7 +25,7 @@ export function DailyMeditation({ onPressMeditation }: DailyMeditationProps) {
             style={styles.row}
           >
             <View style={[styles.iconWrap, { backgroundColor: item.iconBg }]}>
-              <Ionicons name={item.icon} size={22} color={colors.primary} />
+              <Ionicons name={item.icon} size={22} color="#6B7A99" />
             </View>
 
             <View style={styles.textWrap}>
@@ -40,7 +36,7 @@ export function DailyMeditation({ onPressMeditation }: DailyMeditationProps) {
             </View>
 
             <View style={styles.playButton}>
-              <Ionicons name="play" size={16} color={colors.primary} />
+              <Ionicons name="play" size={13} color={colors.text} />
             </View>
           </Pressable>
         ))}
@@ -58,31 +54,32 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: spacing.md,
+    marginBottom: 14,
   },
   list: {
-    gap: spacing.md,
+    gap: 12,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    padding: spacing.md,
-    minHeight: 72,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#E5E7EB',
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    minHeight: 76,
   },
   iconWrap: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   textWrap: {
     flex: 1,
-    marginHorizontal: spacing.md,
+    marginHorizontal: 14,
   },
   title: {
     fontSize: 16,
@@ -90,17 +87,18 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   meta: {
-    marginTop: 2,
+    marginTop: 3,
     fontSize: 13,
-    color: colors.textMuted,
+    color: '#8B9290',
   },
   playButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: 1.5,
-    borderColor: colors.primary,
+    borderColor: '#D1D5DB',
     alignItems: 'center',
     justifyContent: 'center',
+    paddingLeft: 2,
   },
 });

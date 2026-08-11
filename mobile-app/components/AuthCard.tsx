@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     width: '100%',
     maxWidth: 420,
-    // Use boxShadow on web; keep elevation for native.
+
     boxShadow: '0px 4px 12px rgba(0,0,0,0.08)',
     elevation: 3,
   },

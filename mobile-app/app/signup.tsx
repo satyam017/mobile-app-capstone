@@ -13,10 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthCard } from '../components/AuthCard';
 import { BrandHeader } from '../components/BrandHeader';
+import { FormErrorBanner } from '../components/FormErrorBanner';
 import { FormInput } from '../components/FormInput';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { colors, commonStyles, spacing } from '../constants/theme';
-import { saveRegisteredUser } from '../utils/authStorage';
+import { getRegisteredUser, saveRegisteredUser } from '../utils/authStorage';
 import { showAlert } from '../utils/showAlert';
 import { validateSignupForm } from '../utils/validation';
 
@@ -25,13 +26,20 @@ export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const showSignupError = (message: string) => {
+    setFormError(message);
+    showAlert('Registration Error', message);
+  };
 
   const validateForm = () => {
     const error = validateSignupForm({ username, email, password });
     if (error) {
-      showAlert('Registration Error', error);
+      showSignupError(error);
       return false;
     }
+    setFormError(null);
     return true;
   };
 
@@ -46,23 +54,42 @@ export default function SignupScreen() {
 
     try {
       setSubmitting(true);
+
+      const existing = await getRegisteredUser();
+      if (
+        existing &&
+        existing.email.trim().toLowerCase() === email.trim().toLowerCase()
+      ) {
+        showSignupError(
+          'An account with this email already exists. Please log in.',
+        );
+        return;
+      }
+
       await saveRegisteredUser({
         username: username.trim(),
         email: email.trim().toLowerCase(),
         password,
       });
 
-      showAlert(
-        'Success',
-        'Account created successfully. Please log in.',
-        () => router.replace('/login'),
+      setFormError(null);
+      showAlert('Success', 'Account created successfully. Please log in.', () =>
+        router.replace('/login'),
       );
     } catch {
-      showAlert('Registration Error', 'Could not save your account. Please try again.');
+      showSignupError('Could not save your account. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const clearErrorOnEdit =
+    (setter: (value: string) => void) => (value: string) => {
+      setter(value);
+      if (formError) {
+        setFormError(null);
+      }
+    };
 
   return (
     <SafeAreaView style={commonStyles.screen}>
@@ -77,11 +104,13 @@ export default function SignupScreen() {
           <AuthCard>
             <BrandHeader title="Create Your Account" />
 
+            <FormErrorBanner title="Registration Error" message={formError} />
+
             <FormInput
               label="Username"
               placeholder="Enter your username"
               value={username}
-              onChangeText={setUsername}
+              onChangeText={clearErrorOnEdit(setUsername)}
               autoCapitalize="none"
               textContentType="username"
             />
@@ -90,7 +119,7 @@ export default function SignupScreen() {
               label="Email"
               placeholder="Enter your email"
               value={email}
-              onChangeText={setEmail}
+              onChangeText={clearErrorOnEdit(setEmail)}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
@@ -101,7 +130,7 @@ export default function SignupScreen() {
               label="Password"
               placeholder="Enter your password"
               value={password}
-              onChangeText={setPassword}
+              onChangeText={clearErrorOnEdit(setPassword)}
               secureTextEntry
               secureToggle
               autoCapitalize="none"
@@ -113,6 +142,7 @@ export default function SignupScreen() {
               onPress={() => {
                 void handleRegister();
               }}
+              disabled={submitting}
             />
 
             <View style={styles.footer}>

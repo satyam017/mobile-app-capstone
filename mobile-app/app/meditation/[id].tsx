@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { Href, router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -14,11 +14,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getMeditationById } from '../../constants/meditations';
 import { colors, spacing } from '../../constants/theme';
+import {
+  FavoritesStorageError,
+  getFavoriteIds,
+  toggleFavorite,
+} from '../../utils/favoritesStorage';
+import { goBackOr } from '../../utils/navigation';
 import { showAlert } from '../../utils/showAlert';
 
 type TabKey = 'about' | 'instructions';
 
-/** Meditation detail screen opened from Home cards. */
 export default function MeditationDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const meditation = useMemo(
@@ -27,15 +32,37 @@ export default function MeditationDetailScreen() {
   );
   const [tab, setTab] = useState<TabKey>('about');
   const [favorited, setFavorited] = useState(false);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
+
+  useEffect(() => {
+    if (!meditation) {
+      return;
+    }
+    void (async () => {
+      try {
+        const ids = await getFavoriteIds();
+        setFavorited(ids.includes(meditation.id));
+      } catch (error) {
+        const message =
+          error instanceof FavoritesStorageError
+            ? error.message
+            : 'Unable to load favorite status.';
+        showAlert('Favorites', message);
+      }
+    })();
+  }, [meditation]);
 
   if (!meditation) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.missing}>
           <Text style={styles.missingTitle}>Meditation not found</Text>
+          <Text style={styles.missingBody}>
+            This meditation may have been removed. Return home and try another.
+          </Text>
           <Pressable
             accessibilityRole="button"
-            onPress={() => router.back()}
+            onPress={() => goBackOr()}
             style={styles.backChip}
           >
             <Text style={styles.backChipText}>Go back</Text>
@@ -55,14 +82,35 @@ export default function MeditationDetailScreen() {
     }
   };
 
+  const handleFavorite = () => {
+    if (favoriteBusy) {
+      return;
+    }
+    void (async () => {
+      setFavoriteBusy(true);
+      try {
+        const next = await toggleFavorite(meditation.id);
+        setFavorited(next);
+      } catch (error) {
+        const message =
+          error instanceof FavoritesStorageError
+            ? error.message
+            : 'Unable to update favorites.';
+        showAlert('Favorites', message);
+      } finally {
+        setFavoriteBusy(false);
+      }
+    })();
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      {/* Detail header */}
+      {}
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Go back"
-          onPress={() => router.back()}
+          onPress={() => goBackOr()}
           style={styles.headerBtn}
           hitSlop={8}
         >
@@ -100,8 +148,9 @@ export default function MeditationDetailScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={favorited ? 'Remove favorite' : 'Add favorite'}
-            onPress={() => setFavorited((value) => !value)}
+            onPress={handleFavorite}
             style={styles.heartBtn}
+            disabled={favoriteBusy}
           >
             <Ionicons
               name={favorited ? 'heart' : 'heart-outline'}
@@ -111,7 +160,9 @@ export default function MeditationDetailScreen() {
           </Pressable>
         </View>
 
-        <Text style={styles.title}>{meditation.description.split('.')[0]}.</Text>
+        <Text style={styles.title}>
+          {meditation.description.split('.')[0]}.
+        </Text>
 
         <View style={styles.tabs}>
           <Pressable
@@ -162,14 +213,16 @@ export default function MeditationDetailScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Add to favorites"
-          onPress={() => setFavorited((value) => !value)}
+          onPress={handleFavorite}
           style={styles.secondaryBtn}
+          disabled={favoriteBusy}
         >
           <Ionicons
             name={favorited ? 'heart' : 'heart-outline'}
             size={18}
             color={colors.primary}
           />
+
           <Text style={styles.secondaryText}>
             {favorited ? 'Favorited' : 'Add to Favorites'}
           </Text>
@@ -178,10 +231,7 @@ export default function MeditationDetailScreen() {
           accessibilityRole="button"
           accessibilityLabel="Start meditation"
           onPress={() =>
-            showAlert(
-              'Session ready',
-              `Starting “${meditation.title}” (${meditation.durationMinutes} min).`,
-            )
+            router.push(`/meditation/${meditation.id}/session` as Href)
           }
           style={styles.primaryBtn}
         >
@@ -351,7 +401,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  missingBody: {
+    textAlign: 'center',
+    color: colors.textMuted,
     marginBottom: spacing.md,
+    lineHeight: 20,
   },
   backChip: {
     borderWidth: 1,

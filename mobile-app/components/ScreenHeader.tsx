@@ -1,41 +1,48 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing } from '../constants/theme';
+import { useThemeColors } from '../context/PreferencesContext';
+import { spacing } from '../constants/theme';
 
 type ScreenHeaderProps = {
-  /** Optional right-side action (defaults to settings gear). */
   onRightPress?: () => void;
   rightAccessibilityLabel?: string;
   rightIcon?: keyof typeof Ionicons.glyphMap;
 };
 
-/** Top app bar with Mindful branding and a settings action. */
 export function ScreenHeader({
   onRightPress,
-  rightAccessibilityLabel = 'Settings',
+  rightAccessibilityLabel = 'Open settings',
   rightIcon = 'settings-outline',
 }: ScreenHeaderProps) {
+  const colors = useThemeColors();
+
   return (
     <View style={styles.header}>
-      <View style={styles.brandRow} accessibilityRole="header">
-        <Ionicons name="leaf" size={22} color={colors.primary} />
-        <Text style={styles.brand}>Mindful</Text>
+      <View style={styles.side}>
+        <Ionicons name="leaf" size={24} color={colors.primary} />
       </View>
 
-      {onRightPress ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={rightAccessibilityLabel}
-          onPress={onRightPress}
-          hitSlop={10}
-          style={styles.iconButton}
-        >
-          <Ionicons name={rightIcon} size={24} color={colors.text} />
-        </Pressable>
-      ) : (
-        <View style={styles.iconPlaceholder} />
-      )}
+      <Text
+        style={[styles.brand, { color: colors.primary }]}
+        accessibilityRole="header"
+      >
+        Mindful
+      </Text>
+
+      <View style={[styles.side, styles.sideRight]}>
+        {onRightPress ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={rightAccessibilityLabel}
+            onPress={onRightPress}
+            hitSlop={10}
+            style={styles.iconButton}
+          >
+            <Ionicons name={rightIcon} size={24} color={colors.text} />
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -44,28 +51,29 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+    minHeight: 56,
   },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
+  side: {
+    width: 44,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  sideRight: {
+    alignItems: 'flex-end',
   },
   brand: {
+    flex: 1,
+    textAlign: 'center',
     fontSize: 22,
     fontWeight: '700',
-    color: colors.primary,
+    letterSpacing: 0.2,
   },
   iconButton: {
     minWidth: 44,
     minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconPlaceholder: {
-    width: 44,
-    height: 44,
   },
 });
