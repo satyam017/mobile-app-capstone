@@ -106,7 +106,6 @@ export default function MenuScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {}
         <View
           style={[
             styles.profileCard,
@@ -128,7 +127,6 @@ export default function MenuScreen() {
           </Text>
         </View>
 
-        {}
         <View
           style={[
             styles.listCard,

@@ -1,18 +1,57 @@
 import { StyleSheet } from 'react-native';
 
-export const colors = {
+export type ThemeColors = {
+  primary: string;
+  primaryDark: string;
+  background: string;
+  card: string;
+  input: string;
+  text: string;
+  textMuted: string;
+  border: string;
+  divider: string;
+  white: string;
+  error: string;
+  logout: string;
+  navInactive: string;
+  screen: string;
+};
+
+export const lightColors: ThemeColors = {
   primary: '#4A5D4E',
   primaryDark: '#2D4F3C',
-  background: '#F3F4F3',
+  background: '#F8F9FA',
   card: '#FFFFFF',
   input: '#E8EBE9',
   text: '#1F1F1F',
   textMuted: '#7A7F7C',
   border: '#4A5D4E',
-  divider: '#E2E5E3',
+  divider: '#E6E8EA',
   white: '#FFFFFF',
   error: '#B00020',
+  logout: '#A8483A',
+  navInactive: '#9AA09E',
+  screen: '#F5F6F5',
 };
+
+export const darkColors: ThemeColors = {
+  primary: '#8FA894',
+  primaryDark: '#A8C0AE',
+  background: '#121412',
+  card: '#1C1F1C',
+  input: '#2A2E2A',
+  text: '#F2F4F2',
+  textMuted: '#A0A7A1',
+  border: '#8FA894',
+  divider: '#2E3330',
+  white: '#FFFFFF',
+  error: '#FF6B6B',
+  logout: '#E07A6A',
+  navInactive: '#7A807C',
+  screen: '#121412',
+};
+
+export const colors = lightColors;
 
 export const spacing = {
   xs: 6,
@@ -22,7 +61,6 @@ export const spacing = {
   xl: 32,
 };
 
-/** Shared styles for consistent layout across screens (Lab Task 1). */
 export const commonStyles = StyleSheet.create({
   screen: {
     flex: 1,
