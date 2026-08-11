@@ -1,12 +1,22 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { View } from 'react-native';
 
-import { colors } from '../constants/theme';
+import {
+  PreferencesProvider,
+  usePreferences,
+} from '../context/PreferencesContext';
 
-export default function RootLayout() {
+function RootNavigator() {
+  const { ready, colors, darkMode } = usePreferences();
+
+  if (!ready) {
+    return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+  }
+
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style={darkMode ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -15,5 +25,13 @@ export default function RootLayout() {
         }}
       />
     </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <PreferencesProvider>
+      <RootNavigator />
+    </PreferencesProvider>
   );
 }

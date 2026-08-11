@@ -2,10 +2,8 @@ import { Href, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,17 +13,22 @@ import { DailyMeditation } from '../components/DailyMeditation';
 import { PopularMeditation } from '../components/PopularMeditation';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { Welcome } from '../components/Welcome';
-import { DAILY_MEDITATIONS, type Meditation } from '../constants/meditations';
-import { colors, spacing } from '../constants/theme';
+import type { Meditation } from '../constants/meditations';
+import { spacing } from '../constants/theme';
+import { useThemeColors } from '../context/PreferencesContext';
 import type { SessionUser } from '../types/auth';
-import { clearSession, getSession } from '../utils/authStorage';
-import { showAlert } from '../utils/showAlert';
+import { getSession } from '../utils/authStorage';
 
+/**
+ * Mindful Home Screen — layout matches evidence/userStories-homeScreen-evidence.png
+ * Header → Welcome → Popular Meditations → Daily Meditations → Bottom nav
+ */
 export default function HomeScreen() {
+  const colors = useThemeColors();
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load the logged-in session; redirect to Login if missing.
+  // Load session username from AsyncStorage; gate access if not logged in.
   useEffect(() => {
     let active = true;
 
@@ -53,29 +56,27 @@ export default function HomeScreen() {
     router.push(`/meditation/${meditation.id}` as Href);
   };
 
-  const handleSettings = () => {
-    showAlert('Log Out', 'Tap OK to end your session and return to Login.', () => {
-      void (async () => {
-        await clearSession();
-        router.replace('/login');
-      })();
-    });
+  const openSettings = () => {
+    router.push('/settings' as Href);
   };
 
   if (loading || !user) {
     return (
-      <View style={styles.loading}>
+      <View style={[styles.loading, { backgroundColor: colors.screen }]}>
         <ActivityIndicator color={colors.primary} size="large" />
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      {/* Top navigation bar */}
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.screen }]}
+      edges={['top']}
+    >
+      {/* Top bar: leaf + Mindful + settings gear */}
       <ScreenHeader
-        onRightPress={handleSettings}
-        rightAccessibilityLabel="Open settings and log out"
+        onRightPress={openSettings}
+        rightAccessibilityLabel="Open settings"
         rightIcon="settings-outline"
       />
 
@@ -84,22 +85,9 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Personalized welcome */}
+        {/* Username comes from AsyncStorage session — not hard-coded */}
         <Welcome username={user.username} />
 
-        {/* Primary action */}
-        <View style={styles.primaryActionWrap}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Start today's meditation"
-            onPress={() => openMeditation(DAILY_MEDITATIONS[0])}
-            style={styles.primaryAction}
-          >
-            <Text style={styles.primaryActionText}>Start Today&apos;s Session</Text>
-          </Pressable>
-        </View>
-
-        {/* Content sections */}
         <PopularMeditation onPressMeditation={openMeditation} />
         <DailyMeditation onPressMeditation={openMeditation} />
       </ScrollView>
@@ -112,7 +100,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   flex: {
     flex: 1,
@@ -121,26 +108,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.background,
   },
   scrollContent: {
     paddingBottom: spacing.xl,
-  },
-  primaryActionWrap: {
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.xl,
-  },
-  primaryAction: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
-    minHeight: 48,
-    justifyContent: 'center',
-  },
-  primaryActionText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '700',
   },
 });
