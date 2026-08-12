@@ -6,6 +6,7 @@ import {
   PreferencesProvider,
   usePreferences,
 } from '../context/PreferencesContext';
+import '../utils/notificationService';
 
 function RootNavigator() {
   const { ready, colors, darkMode } = usePreferences();

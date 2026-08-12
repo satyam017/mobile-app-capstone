@@ -1,17 +1,11 @@
 import { Alert, Platform } from 'react-native';
 
-/**
- * Cross-platform alert. React Native's Alert.alert button callbacks
- * often do not run on web, so we use window.alert there and then
- * invoke the optional OK callback.
- */
 export function showAlert(
   title: string,
   message: string,
   onOk?: () => void,
 ): void {
   if (Platform.OS === 'web') {
-    // window.alert is blocking; run onOk after the user dismisses it.
     window.alert(`${title}\n\n${message}`);
     onOk?.();
     return;
@@ -23,4 +17,28 @@ export function showAlert(
   }
 
   Alert.alert(title, message);
+}
+
+export function showConfirm(
+  title: string,
+  message: string,
+  onConfirm: () => void,
+  confirmLabel = 'OK',
+  cancelLabel = 'Cancel',
+  onCancel?: () => void,
+): void {
+  if (Platform.OS === 'web') {
+    const accepted = window.confirm(`${title}\n\n${message}`);
+    if (accepted) {
+      onConfirm();
+    } else {
+      onCancel?.();
+    }
+    return;
+  }
+
+  Alert.alert(title, message, [
+    { text: cancelLabel, style: 'cancel', onPress: onCancel },
+    { text: confirmLabel, onPress: onConfirm },
+  ]);
 }

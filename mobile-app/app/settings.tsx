@@ -34,6 +34,7 @@ import {
 import { goBackOr } from '../utils/navigation';
 import { playSoftChime } from '../utils/sound';
 import { showAlert } from '../utils/showAlert';
+import { setNotificationsEnabled } from '../utils/notificationService';
 
 const PROFILE_AVATAR =
   'https://images.unsplash.com/photo-1545389336-cf090694435e?auto=format&fit=crop&w=200&q=80';
@@ -104,11 +105,19 @@ export default function SettingsScreen() {
       return;
     }
 
-    if (key === 'notifications' && value && !prefs.meditationReminder) {
-      void updatePrefs({ notifications: true, meditationReminder: true });
-    } else {
-      void updatePrefs({ [key]: value });
+    if (key === 'notifications') {
+      void (async () => {
+        if (value && !prefs.meditationReminder) {
+          await updatePrefs({ notifications: true, meditationReminder: true });
+        } else {
+          await updatePrefs({ [key]: value });
+        }
+        await setNotificationsEnabled(value);
+      })();
+      return;
     }
+
+    void updatePrefs({ [key]: value });
 
     if (key === 'sound' && value) {
       playSoftChime();
