@@ -1,12 +1,8 @@
-import {
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  ViewStyle,
-} from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import { useMemo } from 'react';
 
-import { colors, spacing } from '../constants/theme';
+import { spacing, type ThemeColors } from '../constants/theme';
+import { useThemeColors } from '../context/ThemeContext';
 
 type PrimaryButtonProps = {
   label: string;
@@ -21,6 +17,9 @@ export function PrimaryButton({
   style,
   disabled = false,
 }: PrimaryButtonProps) {
+  const colors = useThemeColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -38,30 +37,32 @@ export function PrimaryButton({
   );
 }
 
-const styles = StyleSheet.create({
-  button: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingVertical: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.white,
-    marginTop: spacing.sm,
-    zIndex: 2,
-    ...(Platform.OS === 'web'
-      ? ({ cursor: 'pointer', userSelect: 'none' } as object)
-      : null),
-  },
-  pressed: {
-    opacity: 0.75,
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-  label: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    button: {
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderRadius: 8,
+      paddingVertical: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.card,
+      marginTop: spacing.sm,
+      zIndex: 2,
+      ...(Platform.OS === 'web'
+        ? ({ cursor: 'pointer', userSelect: 'none' } as object)
+        : null),
+    },
+    pressed: {
+      opacity: 0.75,
+    },
+    disabled: {
+      opacity: 0.5,
+    },
+    label: {
+      color: colors.primary,
+      fontSize: 16,
+      fontWeight: '700',
+    },
+  });
+}

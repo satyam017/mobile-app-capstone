@@ -1,5 +1,5 @@
 import { Link, router } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -16,12 +16,15 @@ import { BrandHeader } from '../components/BrandHeader';
 import { FormErrorBanner } from '../components/FormErrorBanner';
 import { FormInput } from '../components/FormInput';
 import { PrimaryButton } from '../components/PrimaryButton';
-import { colors, commonStyles, spacing } from '../constants/theme';
+import { spacing, type ThemeColors } from '../constants/theme';
+import { useThemeColors } from '../context/ThemeContext';
 import { getRegisteredUser, saveRegisteredUser } from '../utils/authStorage';
 import { showAlert } from '../utils/showAlert';
 import { validateSignupForm } from '../utils/validation';
 
 export default function SignupScreen() {
+  const colors = useThemeColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -92,13 +95,13 @@ export default function SignupScreen() {
     };
 
   return (
-    <SafeAreaView style={commonStyles.screen}>
+    <SafeAreaView style={styles.screen}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={commonStyles.container}
+          contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
           <AuthCard>
@@ -149,7 +152,7 @@ export default function SignupScreen() {
               <Text style={styles.footerText}>Already have an account? </Text>
               <Link href="/login" asChild>
                 <Pressable>
-                  <Text style={commonStyles.linkText}>Login</Text>
+                  <Text style={styles.linkText}>Login</Text>
                 </Pressable>
               </Link>
             </View>
@@ -160,19 +163,36 @@ export default function SignupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: spacing.lg,
-  },
-  footerText: {
-    color: colors.textMuted,
-    fontSize: 14,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    flex: {
+      flex: 1,
+    },
+    container: {
+      flexGrow: 1,
+      justifyContent: 'center',
+      padding: spacing.lg,
+      alignItems: 'center',
+    },
+    footer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      marginTop: spacing.lg,
+    },
+    footerText: {
+      color: colors.textMuted,
+      fontSize: 14,
+    },
+    linkText: {
+      color: colors.primary,
+      fontWeight: '700',
+      fontSize: 14,
+    },
+  });
+}

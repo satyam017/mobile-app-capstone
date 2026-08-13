@@ -4,7 +4,6 @@ export function isValidEmail(email: string): boolean {
   return EMAIL_REGEX.test(email.trim());
 }
 
-/** Lab Task 3 — signup validation (empty fields + email format). */
 export function validateSignupForm(fields: {
   username: string;
   email: string;
@@ -23,7 +22,6 @@ export function validateSignupForm(fields: {
   return null;
 }
 
-/** Lab Task 5 — login validation (empty fields + email format). */
 export function validateLoginForm(fields: {
   email: string;
   password: string;

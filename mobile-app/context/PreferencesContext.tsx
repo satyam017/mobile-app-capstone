@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   createContext,
   useCallback,
@@ -9,9 +8,10 @@ import {
   type ReactNode,
 } from 'react';
 
-import { darkColors, lightColors, type ThemeColors } from '../constants/theme';
 import { DEFAULT_PREFERENCES, type AppPreferences } from '../types/preferences';
 import { getPreferences, savePreferences } from '../utils/preferencesStorage';
+import { ThemeProvider, useTheme, useThemeColors } from './ThemeContext';
+import type { ThemeColors } from '../constants/theme';
 
 type PreferencesContextValue = {
   ready: boolean;
@@ -21,11 +21,13 @@ type PreferencesContextValue = {
   setPrefs: (next: AppPreferences) => void;
   updatePrefs: (partial: Partial<AppPreferences>) => Promise<void>;
   persistPrefs: (next?: AppPreferences) => Promise<void>;
+  toggleTheme: () => Promise<void>;
 };
 
 const PreferencesContext = createContext<PreferencesContextValue | null>(null);
 
-export function PreferencesProvider({ children }: { children: ReactNode }) {
+function PreferencesStateProvider({ children }: { children: ReactNode }) {
+  const theme = useTheme();
   const [ready, setReady] = useState(false);
   const [prefs, setPrefs] = useState<AppPreferences>(DEFAULT_PREFERENCES);
 
@@ -37,40 +39,67 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
+  useEffect(() => {
+    setPrefs((current) =>
+      current.darkMode === theme.isDarkMode
+        ? current
+        : { ...current, darkMode: theme.isDarkMode },
+    );
+  }, [theme.isDarkMode]);
+
   const persistPrefs = useCallback(
     async (next?: AppPreferences) => {
       const value = next ?? prefs;
       await savePreferences(value);
       setPrefs(value);
+      if (value.darkMode !== theme.isDarkMode) {
+        await theme.setDarkMode(value.darkMode);
+      }
     },
-    [prefs],
+    [prefs, theme],
   );
 
-  const updatePrefs = useCallback(async (partial: Partial<AppPreferences>) => {
-    setPrefs((current) => {
-      const next = { ...current, ...partial };
-      void savePreferences(next);
-      return next;
-    });
-  }, []);
+  const updatePrefs = useCallback(
+    async (partial: Partial<AppPreferences>) => {
+      const next = { ...prefs, ...partial };
+      setPrefs(next);
+      await savePreferences(next);
+      if (
+        typeof partial.darkMode === 'boolean' &&
+        partial.darkMode !== theme.isDarkMode
+      ) {
+        await theme.setDarkMode(partial.darkMode);
+      }
+    },
+    [prefs, theme],
+  );
 
   const value = useMemo<PreferencesContextValue>(
     () => ({
-      ready,
-      prefs,
-      colors: prefs.darkMode ? darkColors : lightColors,
-      darkMode: prefs.darkMode,
+      ready: ready && theme.ready,
+      prefs: { ...prefs, darkMode: theme.isDarkMode },
+      colors: theme.colors,
+      darkMode: theme.isDarkMode,
       setPrefs,
       updatePrefs,
       persistPrefs,
+      toggleTheme: theme.toggleTheme,
     }),
-    [ready, prefs, updatePrefs, persistPrefs],
+    [ready, prefs, theme, updatePrefs, persistPrefs],
   );
 
   return (
     <PreferencesContext.Provider value={value}>
       {children}
     </PreferencesContext.Provider>
+  );
+}
+
+export function PreferencesProvider({ children }: { children: ReactNode }) {
+  return (
+    <ThemeProvider>
+      <PreferencesStateProvider>{children}</PreferencesStateProvider>
+    </ThemeProvider>
   );
 }
 
@@ -82,7 +111,4 @@ export function usePreferences(): PreferencesContextValue {
   return ctx;
 }
 
-export function useThemeColors(): ThemeColors {
-  const ctx = useContext(PreferencesContext);
-  return ctx?.colors ?? lightColors;
-}
+export { useThemeColors };

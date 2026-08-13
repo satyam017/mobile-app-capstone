@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import {
   Pressable,
   StyleProp,
@@ -11,7 +11,8 @@ import {
   ViewStyle,
 } from 'react-native';
 
-import { colors, spacing } from '../constants/theme';
+import { spacing, type ThemeColors } from '../constants/theme';
+import { useThemeColors } from '../context/ThemeContext';
 
 type FormInputProps = TextInputProps & {
   label: string;
@@ -29,6 +30,8 @@ export function FormInput({
   containerStyle,
   ...props
 }: FormInputProps) {
+  const colors = useThemeColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [hidden, setHidden] = useState(Boolean(secureTextEntry));
 
   return (
@@ -44,6 +47,7 @@ export function FormInput({
           placeholderTextColor={colors.textMuted}
           style={[styles.input, secureToggle && styles.inputWithIcon, style]}
         />
+
         {secureToggle ? (
           <Pressable
             accessibilityRole="button"
@@ -64,40 +68,42 @@ export function FormInput({
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: spacing.md,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xs,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  inputShell: {
-    position: 'relative',
-    justifyContent: 'center',
-  },
-  input: {
-    backgroundColor: colors.input,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.text,
-  },
-  inputWithIcon: {
-    paddingRight: 44,
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: 12,
-    height: '100%',
-    justifyContent: 'center',
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    wrapper: {
+      marginBottom: spacing.md,
+    },
+    labelRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.xs,
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    inputShell: {
+      position: 'relative',
+      justifyContent: 'center',
+    },
+    input: {
+      backgroundColor: colors.input,
+      borderRadius: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: colors.text,
+    },
+    inputWithIcon: {
+      paddingRight: 44,
+    },
+    eyeButton: {
+      position: 'absolute',
+      right: 12,
+      height: '100%',
+      justifyContent: 'center',
+    },
+  });
+}

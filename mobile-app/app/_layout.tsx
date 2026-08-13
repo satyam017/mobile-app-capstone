@@ -1,5 +1,7 @@
 import { Stack } from 'expo-router';
+import * as Updates from 'expo-updates';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { View } from 'react-native';
 
 import {
@@ -10,6 +12,24 @@ import '../utils/notificationService';
 
 function RootNavigator() {
   const { ready, colors, darkMode } = usePreferences();
+
+  useEffect(() => {
+    if (__DEV__) {
+      return;
+    }
+
+    void (async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch {
+        return;
+      }
+    })();
+  }, []);
 
   if (!ready) {
     return <View style={{ flex: 1, backgroundColor: colors.background }} />;

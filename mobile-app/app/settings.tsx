@@ -64,6 +64,7 @@ const PREFERENCE_TOGGLES: {
 ];
 
 export default function SettingsScreen() {
+
   const { prefs, persistPrefs, updatePrefs, colors, darkMode, toggleTheme } =
     usePreferences();
   const styles = useMemo(() => createStyles(colors), [colors]);

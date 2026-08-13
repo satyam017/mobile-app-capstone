@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing } from '../constants/theme';
+import { spacing, type ThemeColors } from '../constants/theme';
+import { useThemeColors } from '../context/ThemeContext';
 
 type BrandHeaderProps = {
   title?: string;
@@ -9,6 +11,9 @@ type BrandHeaderProps = {
 };
 
 export function BrandHeader({ title, subtitle }: BrandHeaderProps) {
+  const colors = useThemeColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
       <Ionicons name="leaf" size={36} color={colors.primary} />
@@ -19,30 +24,32 @@ export function BrandHeader({ title, subtitle }: BrandHeaderProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  brand: {
-    marginTop: spacing.sm,
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.primary,
-    letterSpacing: 0.3,
-  },
-  title: {
-    marginTop: spacing.md,
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    fontSize: 13,
-    color: colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 18,
-    paddingHorizontal: spacing.sm,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      marginBottom: spacing.lg,
+    },
+    brand: {
+      marginTop: spacing.sm,
+      fontSize: 28,
+      fontWeight: '700',
+      color: colors.primary,
+      letterSpacing: 0.3,
+    },
+    title: {
+      marginTop: spacing.md,
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    subtitle: {
+      marginTop: spacing.xs,
+      fontSize: 13,
+      color: colors.textMuted,
+      textAlign: 'center',
+      lineHeight: 18,
+      paddingHorizontal: spacing.sm,
+    },
+  });
+}
